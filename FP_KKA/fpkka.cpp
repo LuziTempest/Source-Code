@@ -95,20 +95,14 @@ int main() {
     
     int totalCost = 0;
     
-    // --- MULAI PENGUKURAN WAKTU ---
     auto start = std::chrono::high_resolution_clock::now();
 
-    // Panggil fungsi yang ingin diukur
     vector<char> path = g.hill_climbing('A','G', h, totalCost);
 
-    // --- SELESAI PENGUKURAN WAKTU ---
     auto end = std::chrono::high_resolution_clock::now();
     
-    // Hitung durasi dalam mikrosekon (microseconds)
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-
-    // --- Hasil Eksekusi ---
     if (!path.empty()) {
         cout << "Jalur ditemukan : ";
         for (int i = 0; i < path.size(); ++i) {
@@ -121,12 +115,7 @@ int main() {
     }
 
     cout << "\n--- Analisis Performa ---" << endl;
-    
-    // --- HASIL ANALISIS WAKTU PRAKTIS ---
     cout << "Waktu eksekusi: " << duration.count() << " mikrosekon" << endl;
-    
-    // --- HASIL ANALISIS MEMORI PRAKTIS ---
-    // (Kita ukur dari data yang dihasilkan)
     cout << "Memori (Path)   : " << path.size() << " elemen node" << endl;
 
     return 0;
