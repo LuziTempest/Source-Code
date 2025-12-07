@@ -1,0 +1,1 @@
+{"name":"Local: halo","url":"c:\\Coding\\CP\\Source-Code\\halo.cpp","tests":[{"id":1764955007132,"input":"5\n5000 1000 5000 2000 1000\n5000","output":""}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"c:\\Coding\\CP\\Source-Code\\halo.cpp","group":"local","local":true}
