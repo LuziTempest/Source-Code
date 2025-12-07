@@ -1,0 +1,7 @@
+#BlueJ class context
+comment0.target=PeminjamanGedung
+comment1.params=nama\ tanggal\ kategori\ detail\ harga\ pathGambar
+comment1.target=PeminjamanGedung(java.lang.String,\ java.lang.String,\ java.lang.String,\ java.lang.String,\ double,\ java.lang.String)
+comment2.params=
+comment2.target=java.lang.String\ getInfoLengkap()
+numComments=3
