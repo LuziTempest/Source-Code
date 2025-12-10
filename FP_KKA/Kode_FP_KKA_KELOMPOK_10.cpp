@@ -3,68 +3,131 @@
 #include <string>
 #include <algorithm>
 #include <map>
-#include <set>
+#include <cstdlib>
+#include <ctime>
 #include <chrono>
 
 using namespace std;
 
 struct Graph {
-    int vertexCount;
     map<char, vector<pair<char, int>>> adjList;
-
-    void init(int v) {
-        vertexCount = v;
-        adjList.clear();
-    }
+    vector<char> nodes;
 
     void add_edge(char c1, char c2, int weight) {
         adjList[c1].push_back({c2, weight});
-        adjList[c2].push_back({c1, weight}); 
+        adjList[c2].push_back({c1, weight});
     }
 
-    vector<char> hill_climbing(char startNode, char goalNode, map<char, int> &h, int &totalCost) {
-        totalCost = 0;
-        vector<char> path;
-        path.push_back(startNode);
-        char currentNode = startNode;
-        set<char> visitedOnPath;
-        visitedOnPath.insert(currentNode);
-
-        while (currentNode != goalNode) {
-            char bestNeighbor = 0; 
-            int costToNeighbor = 0;
-            int minHeuristic = h[currentNode]; 
-
-            for (auto& edge : adjList[currentNode]) {
-                char neighbor = edge.first;
-                int weight = edge.second;
-                if (visitedOnPath.count(neighbor)) {
-                    continue; 
-                }
-                if (h[neighbor] < minHeuristic) {
-                    minHeuristic = h[neighbor];
-                    bestNeighbor = neighbor;
-                    costToNeighbor = weight;
-                }
-            }
-
-            if (bestNeighbor == 0) {
-                return {};
-            }
-
-            currentNode = bestNeighbor;
-            visitedOnPath.insert(currentNode);
-            path.push_back(currentNode);
-            totalCost += costToNeighbor;
+    void add_node(char node) {
+        if (find(nodes.begin(), nodes.end(), node) == nodes.end()) {
+            nodes.push_back(node);
         }
-        return path;
+    }
+
+    int get_edge_cost(char from, char to) {
+        for (auto& edge : adjList[from]) {
+            if (edge.first == to) {
+                return edge.second;
+            }
+        }
+        return 99999;
+    }
+
+    int calculate_route_cost(const vector<char>& route) {
+        int totalCost = 0;
+        for (size_t i = 0; i < route.size() - 1; i++) {
+            totalCost += get_edge_cost(route[i], route[i + 1]);
+        }
+        return totalCost;
+    }
+
+    void print_route(const vector<char>& route, int cost, int iteration = -1) {
+        if (iteration >= 0) {
+            cout << "Iterasi " << iteration << " - ";
+        }
+        cout << "Rute: ";
+        for (size_t i = 0; i < route.size(); i++) {
+            cout << route[i];
+            if (i < route.size() - 1) cout << " -> ";
+        }
+        cout << " | Total Cost: " << cost << endl;
+    }
+
+    vector<char> generate_random_route(char start, char goal) {
+        vector<char> route;
+        route.push_back(start);
+        
+        vector<char> middle_nodes;
+        for (char node : nodes) {
+            if (node != start && node != goal) {
+                middle_nodes.push_back(node);
+            }
+        }
+        
+        random_shuffle(middle_nodes.begin(), middle_nodes.end());
+        
+        for (char node : middle_nodes) {
+            route.push_back(node);
+        }
+        
+        route.push_back(goal);
+        return route;
+    }
+
+    vector<char> hill_climbing_local_search(char start, char goal) {
+        vector<char> current_route = generate_random_route(start, goal);
+        int current_cost = calculate_route_cost(current_route);
+        
+        cout << "\n=== HILL CLIMBING LOCAL SEARCH ===" << endl;
+        cout << "\nRute Awal (Random):" << endl;
+        print_route(current_route, current_cost);
+        cout << "\nProses Optimasi:" << endl;
+        
+        int iteration = 1;
+        bool improved = true;
+        
+        while (improved) {
+            improved = false;
+            vector<char> best_neighbor = current_route;
+            int best_cost = current_cost;
+            
+            for (size_t i = 1; i < current_route.size() - 2; i++) {
+                for (size_t j = i + 1; j < current_route.size() - 1; j++) {
+                    vector<char> neighbor = current_route;
+                    swap(neighbor[i], neighbor[j]);
+                    
+                    int neighbor_cost = calculate_route_cost(neighbor);
+                    
+                    if (neighbor_cost < best_cost) {
+                        best_neighbor = neighbor;
+                        best_cost = neighbor_cost;
+                        improved = true;
+                    }
+                }
+            }
+            
+            if (improved) {
+                current_route = best_neighbor;
+                current_cost = best_cost;
+                print_route(current_route, current_cost, iteration);
+                iteration++;
+            }
+        }
+        
+        cout << "\n=== HASIL AKHIR ===" << endl;
+        cout << "Solusi Optimal (Local Optimum):" << endl;
+        print_route(current_route, current_cost);
+        cout << "Total Iterasi: " << (iteration - 1) << endl;
+        
+        return current_route;
     }
 };
 
 
 int main() {
+    srand(time(0));
+    
     Graph g;
-    g.init(8); 
 
     g.add_edge('S','A',10);
     g.add_edge('S','B',12);
@@ -77,64 +140,27 @@ int main() {
     g.add_edge('E','F',5);
     g.add_edge('F','G',0);
 
-    map<char, int> h;
-    h['S'] = 20;
-    h['A'] = 14;
-    h['B'] = 13;
-    h['C'] = 10;
-    h['D'] = 12;
-    h['E'] = 9;
-    h['F'] = 6;
-    h['G'] = 0;
+    g.add_node('S');
+    g.add_node('A');
+    g.add_node('B');
+    g.add_node('C');
+    g.add_node('D');
+    g.add_node('E');
+    g.add_node('F');
+    g.add_node('G');
 
+    cout << "========================================" << endl;
+    cout << "  OPTIMASI RUTE DENGAN HILL CLIMBING" << endl;
+    cout << "========================================" << endl;
     
-    // Skenario 1: Pencarian dari 'S' ke 'G'
-    cout << "--- Skenario 1: Hill Climbing (S -> G) ---" << endl;
+    auto start_time = chrono::high_resolution_clock::now();
+    vector<char> optimal_route = g.hill_climbing_local_search('S', 'G');
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::microseconds>(end_time - start_time);
     
-    int totalCost_SG = 0;
-    auto start_SG = std::chrono::high_resolution_clock::now();
-    vector<char> path_SG = g.hill_climbing('S','G', h, totalCost_SG);
-    auto end_SG = std::chrono::high_resolution_clock::now();
-    auto duration_SG = std::chrono::duration_cast<std::chrono::microseconds>(end_SG - start_SG);
-
-    if (!path_SG.empty()) {
-        cout << "Jalur ditemukan : ";
-        for (int i = 0; i < path_SG.size(); ++i) {
-            cout << path_SG[i] << (i == path_SG.size() - 1 ? "" : " -> ");
-        }
-        cout << "\nTotal cost      : " << totalCost_SG << endl;
-    } else {
-        cout << "Jalur tidak ditemukan (terjebak)." << endl;
-    }
-
-    cout << "\n--- Analisis Performa (S -> G) ---" << endl;
-    cout << "Waktu eksekusi: " << duration_SG.count() << " mikrosekon" << endl;
-    cout << "Memori (Path)   : " << path_SG.size() << " elemen node" << endl;
-
-    cout << "\n======================================================\n" << endl;
-
-    // Skenario 2: Pencarian dari 'A' ke 'G'
-    cout << "--- Skenario 2: Hill Climbing (A -> G) ---" << endl;
-
-    int totalCost_AG = 0;
-    auto start_AG = std::chrono::high_resolution_clock::now();
-    vector<char> path_AG = g.hill_climbing('A','G', h, totalCost_AG);
-    auto end_AG = std::chrono::high_resolution_clock::now();
-    auto duration_AG = std::chrono::duration_cast<std::chrono::microseconds>(end_AG - start_AG);
-
-    if (!path_AG.empty()) {
-        cout << "Jalur ditemukan : ";
-        for (int i = 0; i < path_AG.size(); ++i) {
-            cout << path_AG[i] << (i == path_AG.size() - 1 ? "" : " -> ");
-        }
-        cout << "\nTotal cost      : " << totalCost_AG << endl;
-    } else {
-        cout << "Jalur tidak ditemukan (terjebak)." << endl;
-    }
-
-    cout << "\n--- Analisis Performa (A -> G) ---" << endl;
-    cout << "Waktu eksekusi: " << duration_AG.count() << " mikrosekon" << endl;
-    cout << "Memori (Path)   : " << path_AG.size() << " elemen node" << endl;
+    cout << "\n=== ANALISIS PERFORMA ===" << endl;
+    cout << "Waktu eksekusi: " << duration.count() << " mikrosekon" << endl;
+    cout << "Panjang rute: " << optimal_route.size() << " node" << endl;
 
     return 0;
 }
