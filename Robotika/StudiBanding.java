@@ -17,7 +17,7 @@ class StudiBanding extends Permintaan {
     @Override
     public String getInfoLengkap() {
         return "=== STUDI BANDING ===\n" +
-               "Status: [" + status.toUpperCase() + "]\n" + // BARU
+               "Status: [" + status.toUpperCase() + "]\n" +
                "Nama: " + namaPemohon + "\n" +
                "Asal Instansi: " + asalInstansi + "\n" +
                "Tujuan Tim: " + namaTimTujuan + "\n" +

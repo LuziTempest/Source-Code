@@ -17,7 +17,7 @@ class PeminjamanGedung extends Permintaan {
     @Override
     public String getInfoLengkap() {
         String info = "=== PEMINJAMAN GEDUNG ===\n" +
-                      "Status: [" + status.toUpperCase() + "]\n" + // BARU
+                      "Status: [" + status.toUpperCase() + "]\n" + 
                       "Nama: " + namaPemohon + "\n" +
                       "Tanggal: " + tanggal + "\n" +
                       "Kategori: " + kategoriUser + "\n";

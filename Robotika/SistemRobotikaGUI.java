@@ -1,28 +1,28 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel; // Import Baru untuk Tabel Admin
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.io.File;
 import java.util.Vector;
 
 public class SistemRobotikaGUI extends JFrame {
-    // Penyimpanan data
     private ArrayList<Permintaan> daftarAjuan = new ArrayList<>();
+    private HashMap<String, String> dataUser = new HashMap<>();
 
-    // Komponen Utama
     private JPanel mainPanel;
     private CardLayout cardLayout;
 
-    // Panel Halaman
+    private JPanel loginPanel;
+    private JPanel registerPanel;
     private JPanel menuPanel;
     private JPanel bookingPanel;
     private JPanel statusPanel;
     private JPanel visitPanel;
-    private JPanel adminPanel; // BARU: Panel Admin
+    private JPanel adminPanel;
 
-    // Komponen Booking
     private JComboBox<String> cmbHari;
     private JRadioButton rbMahasiswa, rbUmum;
     private JTextField txtNamaBooking, txtIdentitasBooking;
@@ -33,142 +33,272 @@ public class SistemRobotikaGUI extends JFrame {
     private String pathFotoKTM = "-";
     private JPanel panelFormDinamis;
 
-    // Komponen Studi Banding
     private JComboBox<String> cmbTimRiset;
     private JComboBox<String> cmbTanggal, cmbBulan, cmbTahun, cmbJam;
     private JTextField txtNamaVisit, txtInstansiVisit, txtAlamatVisit;
     private JTextArea txtTujuanVisit;
 
-    // Komponen Status
     private JTextArea txtAreaStatus;
 
-    // Komponen Admin (BARU)
     private JTable tabelAdmin;
     private DefaultTableModel modelAdmin;
 
+    private String currentUser = "";
+
     public SistemRobotikaGUI() {
         super("Sistem Manajemen Robotika");
-        setSize(850, 650); // Sedikit diperlebar agar tabel muat
+        setSize(850, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        dataUser.put("user", "user123"); 
+        dataUser.put("mahasiswa", "mhs123");
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Inisialisasi Semua Halaman
+        initLoginPanel();
+        initRegisterPanel();
         initMenuPanel();
         initBookingPanel();
         initStatusPanel();
         initVisitPanel();
-        initAdminPanel(); // BARU
+        initAdminPanel();
 
-        // Tambah ke Main Panel
+        mainPanel.add(loginPanel, "Login");
+        mainPanel.add(registerPanel, "Register");
         mainPanel.add(menuPanel, "Menu");
         mainPanel.add(bookingPanel, "Booking");
         mainPanel.add(statusPanel, "Status");
         mainPanel.add(visitPanel, "Visit");
-        mainPanel.add(adminPanel, "Admin"); // BARU
+        mainPanel.add(adminPanel, "Admin");
 
         add(mainPanel);
         setVisible(true);
     }
 
-    // --- 1. MENU UTAMA (Updated: Tombol Admin di Kanan Bawah) ---
-   // --- 1. MENU UTAMA (Updated: Layout Lebih Rapi & Tombol Admin Besar) ---
+    private void initLoginPanel() {
+        loginPanel = new JPanel(new BorderLayout());
+        loginPanel.setBackground(new Color(240, 248, 255));
+
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        centerPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        
+        JLabel lblJudul = new JLabel("Login Sistem Robotika");
+        lblJudul.setFont(new Font("SansSerif", Font.BOLD, 24));
+        
+        JTextField txtUser = new JTextField(20);
+        JPasswordField txtPass = new JPasswordField(20);
+        
+        JButton btnLogin = new JButton("LOGIN MASUK");
+        btnLogin.setBackground(new Color(100, 149, 237));
+        btnLogin.setForeground(Color.BLACK); 
+        btnLogin.setPreferredSize(new Dimension(150, 40));
+
+        JButton btnRegister = new JButton("Belum punya akun? Daftar");
+        btnRegister.setBorderPainted(false);
+        btnRegister.setContentAreaFilled(false);
+        btnRegister.setForeground(Color.BLUE);
+        btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        centerPanel.add(lblJudul, gbc);
+        
+        gbc.gridwidth = 1; gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridy = 1; centerPanel.add(new JLabel("Username:"), gbc);
+        gbc.gridy = 2; centerPanel.add(new JLabel("Password:"), gbc);
+        
+        gbc.gridx = 1; 
+        gbc.gridy = 1; centerPanel.add(txtUser, gbc);
+        gbc.gridy = 2; centerPanel.add(txtPass, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+        centerPanel.add(btnLogin, gbc);
+        
+        gbc.gridy = 4;
+        centerPanel.add(btnRegister, gbc);
+
+        loginPanel.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 20));
+
+        JButton btnAdmin = new JButton("Login Admin");
+        btnAdmin.setBackground(new Color(112, 128, 144));
+        btnAdmin.setForeground(Color.BLACK);
+        
+        btnAdmin.addActionListener(e -> prosesLoginAdmin());
+        
+        bottomPanel.add(btnAdmin);
+        loginPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        btnLogin.addActionListener(e -> {
+            String u = txtUser.getText();
+            String p = new String(txtPass.getPassword());
+            
+            if(dataUser.containsKey(u) && dataUser.get(u).equals(p)) {
+                currentUser = u;
+                txtUser.setText(""); txtPass.setText("");
+                JOptionPane.showMessageDialog(this, "Selamat Datang, " + currentUser + "!");
+                cardLayout.show(mainPanel, "Menu");
+            } else {
+                JOptionPane.showMessageDialog(this, "Username atau Password Salah!", "Login Gagal", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        btnRegister.addActionListener(e -> cardLayout.show(mainPanel, "Register"));
+    }
+
+    private void initRegisterPanel() {
+        registerPanel = new JPanel(new GridBagLayout());
+        registerPanel.setBackground(new Color(255, 250, 240));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        
+        JLabel lblReg = new JLabel("Pendaftaran Akun Baru");
+        lblReg.setFont(new Font("SansSerif", Font.BOLD, 20));
+        
+        JTextField txtNewUser = new JTextField(20);
+        JPasswordField txtNewPass = new JPasswordField(20);
+        JPasswordField txtConfirmPass = new JPasswordField(20);
+        
+        JButton btnSubmitReg = new JButton("Daftar Sekarang");
+        JButton btnCancel = new JButton("Batal");
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        registerPanel.add(lblReg, gbc);
+
+        gbc.gridwidth = 1; gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridy = 1; registerPanel.add(new JLabel("Username Baru:"), gbc);
+        gbc.gridy = 2; registerPanel.add(new JLabel("Password:"), gbc);
+        gbc.gridy = 3; registerPanel.add(new JLabel("Konfirmasi Password:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1; registerPanel.add(txtNewUser, gbc);
+        gbc.gridy = 2; registerPanel.add(txtNewPass, gbc);
+        gbc.gridy = 3; registerPanel.add(txtConfirmPass, gbc);
+
+        JPanel pnlBtn = new JPanel();
+        pnlBtn.setOpaque(false);
+        pnlBtn.add(btnCancel); pnlBtn.add(btnSubmitReg);
+        
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+        registerPanel.add(pnlBtn, gbc);
+
+        btnSubmitReg.addActionListener(e -> {
+            String u = txtNewUser.getText();
+            String p = new String(txtNewPass.getPassword());
+            String cp = new String(txtConfirmPass.getPassword());
+
+            if(u.isEmpty() || p.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Data tidak boleh kosong!");
+            } else if (dataUser.containsKey(u)) {
+                JOptionPane.showMessageDialog(this, "Username sudah terpakai!");
+            } else if (!p.equals(cp)) {
+                JOptionPane.showMessageDialog(this, "Password konfirmasi tidak cocok!");
+            } else {
+                dataUser.put(u, p);
+                JOptionPane.showMessageDialog(this, "Akun berhasil dibuat! Silakan Login.");
+                txtNewUser.setText(""); txtNewPass.setText(""); txtConfirmPass.setText("");
+                cardLayout.show(mainPanel, "Login");
+            }
+        });
+
+        btnCancel.addActionListener(e -> {
+            txtNewUser.setText(""); txtNewPass.setText(""); txtConfirmPass.setText("");
+            cardLayout.show(mainPanel, "Login");
+        });
+    }
+
     private void initMenuPanel() {
-        // Gunakan BorderLayout untuk memisahkan area Tengah (Menu) dan Bawah (Admin)
         menuPanel = new JPanel(new BorderLayout());
         menuPanel.setBackground(new Color(240, 248, 255));
 
-        // --- A. PANEL TENGAH (Untuk Judul & 3 Tombol Utama) ---
-        // Kita bungkus lagi pakai GridBagLayout supaya benar-benar di tengah layar
         JPanel centerStack = new JPanel(new GridBagLayout());
-        centerStack.setOpaque(false); // Transparan agar warna background menuPanel terlihat
+        centerStack.setOpaque(false);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0; 
-        gbc.insets = new Insets(10, 0, 10, 0); // Jarak antar elemen vertikal
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Agar lebar tombol seragam
+        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // 1. Judul
-        JLabel title = new JLabel("Sistem Manajemen Robotika");
-        title.setFont(new Font("SansSerif", Font.BOLD, 28)); // Font diperbesar sedikit
+        JLabel title = new JLabel("Menu Utama User");
+        title.setFont(new Font("SansSerif", Font.BOLD, 28));
         title.setHorizontalAlignment(SwingConstants.CENTER);
         
         GridBagConstraints titleGbc = new GridBagConstraints();
         titleGbc.gridx = 0; titleGbc.gridy = 0;
-        titleGbc.insets = new Insets(0, 0, 40, 0); // Jarak dari judul ke tombol pertama
+        titleGbc.insets = new Insets(0, 0, 40, 0);
         centerStack.add(title, titleGbc);
 
-        // 2. Tombol-Tombol Utama
-        Dimension btnSize = new Dimension(280, 55); // Ukuran tombol utama
+        Dimension btnSize = new Dimension(280, 55);
 
         JButton btnBooking = createStyledButton("Peminjaman Gedung", new Color(100, 149, 237), btnSize);
-        JButton btnStatus = createStyledButton("Status Ajuan User", new Color(255, 215, 0), btnSize);
+        JButton btnStatus = createStyledButton("Status Ajuan Saya", new Color(255, 215, 0), btnSize);
         JButton btnVisit = createStyledButton("Studi Banding", new Color(60, 179, 113), btnSize);
 
-        // Aksi Tombol
-        btnBooking.addActionListener(e -> cardLayout.show(mainPanel, "Booking"));
+        btnBooking.addActionListener(e -> {
+            txtNamaBooking.setText(currentUser); 
+            cardLayout.show(mainPanel, "Booking");
+        });
+        
         btnStatus.addActionListener(e -> {
             updateStatusDisplay();
             cardLayout.show(mainPanel, "Status");
         });
-        btnVisit.addActionListener(e -> cardLayout.show(mainPanel, "Visit"));
 
-        // Masukkan ke centerStack
+        btnVisit.addActionListener(e -> {
+            txtNamaVisit.setText(currentUser);
+            cardLayout.show(mainPanel, "Visit");
+        });
+
         gbc.gridy = 1; centerStack.add(btnBooking, gbc);
         gbc.gridy = 2; centerStack.add(btnStatus, gbc);
         gbc.gridy = 3; centerStack.add(btnVisit, gbc);
 
-        // Tambahkan centerStack ke menuPanel
         menuPanel.add(centerStack, BorderLayout.CENTER);
 
-
-        // --- B. PANEL BAWAH (Khusus Tombol Admin) ---
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT)); // Rata Kanan
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 20)); // Margin dari pinggir layar (Bawah, Kanan)
-
-        // Tombol Admin (Diperbesar)
-        JButton btnAdmin = new JButton("Login Admin");
-        btnAdmin.setPreferredSize(new Dimension(160, 45)); // UKURAN LEBIH BESAR
-        btnAdmin.setBackground(new Color(112, 128, 144)); // Warna SlateGray (Lebih gelap/serius)
-        btnAdmin.setForeground(Color.BLACK);
-        btnAdmin.setFont(new Font("SansSerif", Font.BOLD, 14)); // Font tebal dan jelas
-        btnAdmin.setFocusPainted(false);
         
-        // Ikon gembok sederhana (opsional, pakai teks saja sudah cukup jelas dengan ukuran ini)
-        btnAdmin.addActionListener(e -> prosesLoginAdmin());
+        JButton btnLogout = new JButton("Logout / Keluar");
+        btnLogout.setBackground(Color.WHITE);
+        btnLogout.setForeground(Color.BLACK); 
+        btnLogout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Yakin ingin keluar?", "Logout", JOptionPane.YES_NO_OPTION);
+            if(confirm == JOptionPane.YES_OPTION) {
+                currentUser = "";
+                cardLayout.show(mainPanel, "Login");
+            }
+        });
 
-        bottomPanel.add(btnAdmin);
-        
-        // Tambahkan bottomPanel ke menuPanel
+        bottomPanel.add(btnLogout);
         menuPanel.add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    // --- LOGIKA LOGIN ADMIN ---
     private void prosesLoginAdmin() {
         String password = JOptionPane.showInputDialog(this, "Masukkan Kode Admin:", "Login Admin", JOptionPane.QUESTION_MESSAGE);
-        if (password != null && password.equals("admin123")) { // PASSWORD HARDCODED
-            refreshTabelAdmin(); // Load data terbaru ke tabel
+        if (password != null && password.equals("admin123")) { 
+            refreshTabelAdmin();
             cardLayout.show(mainPanel, "Admin");
         } else if (password != null) {
             JOptionPane.showMessageDialog(this, "Kode Salah!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // --- 5. PANEL ADMIN (DASHBOARD) - BARU ---
     private void initAdminPanel() {
         adminPanel = new JPanel(new BorderLayout());
         
-        // Header Admin
         JLabel lblTitle = new JLabel("Dashboard Admin - Persetujuan Ajuan");
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
         lblTitle.setBorder(new EmptyBorder(15, 15, 15, 15));
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         adminPanel.add(lblTitle, BorderLayout.NORTH);
 
-        // Tabel Data
         String[] kolom = {"No", "Pemohon", "Jenis Ajuan", "Status Saat Ini"};
         modelAdmin = new DefaultTableModel(kolom, 0);
         tabelAdmin = new JTable(modelAdmin);
@@ -177,20 +307,18 @@ public class SistemRobotikaGUI extends JFrame {
         JScrollPane scrollPane = new JScrollPane(tabelAdmin);
         adminPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Panel Tombol Aksi
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         
         JButton btnSetuju = new JButton("SETUJUI");
-        btnSetuju.setBackground(new Color(144, 238, 144)); // Hijau Muda
+        btnSetuju.setBackground(new Color(144, 238, 144));
         
         JButton btnTolak = new JButton("TOLAK");
-        btnTolak.setBackground(new Color(255, 182, 193)); // Merah Muda
+        btnTolak.setBackground(new Color(255, 182, 193));
         
-        JButton btnDetail = new JButton("Lihat Detail"); // Opsional: Lihat isi lengkap
+        JButton btnDetail = new JButton("Lihat Detail");
         
-        JButton btnLogout = new JButton("Logout / Kembali");
+        JButton btnLogout = new JButton("Logout Admin");
         
-        // Listener Aksi
         btnSetuju.addActionListener(e -> updateStatusAjuan("DISETUJUI"));
         btnTolak.addActionListener(e -> updateStatusAjuan("DITOLAK"));
         
@@ -202,7 +330,7 @@ public class SistemRobotikaGUI extends JFrame {
             }
         });
 
-        btnLogout.addActionListener(e -> cardLayout.show(mainPanel, "Menu"));
+        btnLogout.addActionListener(e -> cardLayout.show(mainPanel, "Login"));
 
         actionPanel.add(btnDetail);
         actionPanel.add(btnTolak);
@@ -212,26 +340,20 @@ public class SistemRobotikaGUI extends JFrame {
         adminPanel.add(actionPanel, BorderLayout.SOUTH);
     }
 
-    // --- Helper Admin: Update Status ---
     private void updateStatusAjuan(String statusBaru) {
         int row = tabelAdmin.getSelectedRow();
         if (row == -1) {
             JOptionPane.showMessageDialog(this, "Pilih baris ajuan terlebih dahulu!");
             return;
         }
-
-        // Update Data di ArrayList
         Permintaan p = daftarAjuan.get(row);
         p.setStatus(statusBaru);
-
-        // Update Tampilan Tabel
         refreshTabelAdmin();
         JOptionPane.showMessageDialog(this, "Status berhasil diubah menjadi: " + statusBaru);
     }
 
-    // --- Helper Admin: Refresh Tabel ---
     private void refreshTabelAdmin() {
-        modelAdmin.setRowCount(0); // Hapus data lama di tabel GUI
+        modelAdmin.setRowCount(0);
         int no = 1;
         for (Permintaan p : daftarAjuan) {
             modelAdmin.addRow(new Object[]{
@@ -253,7 +375,6 @@ public class SistemRobotikaGUI extends JFrame {
         return btn;
     }
 
-    // --- 2. PEMINJAMAN GEDUNG (Validasi Jadwal Tetap Ada) ---
     private void initBookingPanel() {
         bookingPanel = new JPanel(new BorderLayout());
         JPanel formContentPanel = new JPanel();
@@ -263,12 +384,10 @@ public class SistemRobotikaGUI extends JFrame {
                 new EmptyBorder(10, 10, 10, 10)
         ));
 
-        // Header & Dropdown Hari
         JPanel pnlHari = new JPanel(new FlowLayout(FlowLayout.LEFT));
         String[] hari = {"Senin (Tersedia)", "Selasa (Penuh)", "Rabu (Tersedia)", "Kamis (Tersedia)", "Jumat (Penuh)", "Sabtu (Weekend)", "Minggu (Weekend)"};
         cmbHari = new JComboBox<>(hari);
 
-        // Renderer Visual (Merah jika Penuh)
         cmbHari.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -515,7 +634,6 @@ public class SistemRobotikaGUI extends JFrame {
         visitPanel.add(btnPanel, BorderLayout.SOUTH);
     }
 
-    // --- 4. STATUS AJUAN (User View) ---
     private void initStatusPanel() {
         statusPanel = new JPanel(new BorderLayout());
         
@@ -541,7 +659,7 @@ public class SistemRobotikaGUI extends JFrame {
         else {
             StringBuilder sb = new StringBuilder();
             for (Permintaan p : daftarAjuan) {
-                sb.append(p.getInfoLengkap()).append("\n"); // Info Lengkap sudah berisi Status
+                sb.append(p.getInfoLengkap()).append("\n"); 
             }
             txtAreaStatus.setText(sb.toString());
         }
