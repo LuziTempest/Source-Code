@@ -1,0 +1,17 @@
+#BlueJ class context
+comment0.target=SistemRobotikaGUI
+comment1.params=
+comment1.target=SistemRobotikaGUI()
+comment2.params=namaHalaman
+comment2.target=void\ gantiHalaman(java.lang.String)
+comment3.params=
+comment3.target=java.util.ArrayList\ getDaftarAjuan()
+comment4.params=
+comment4.target=java.util.HashMap\ getDataUser()
+comment5.params=user
+comment5.target=void\ setCurrentUser(java.lang.String)
+comment6.params=
+comment6.target=java.lang.String\ getCurrentUser()
+comment7.params=args
+comment7.target=void\ main(java.lang.String[])
+numComments=8
